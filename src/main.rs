@@ -1,35 +1,50 @@
-use std::{env, error::Error, fs::{self, OpenOptions}, io::Write, process::{self, Command}};
-use chrono::{ Local };
+use chrono::Local;
+use std::{
+    env,
+    error::Error,
+    fs::{self, OpenOptions},
+    io::Write,
+    process::{self, Command},
+};
 
 fn main() {
     let editor = env::var("EDITOR").unwrap();
 
     let now = Local::now();
-    let date = now.format("%Y-%m-%d");
+    let date = now.format("%Y-%m-%d").to_string();
     let timestamp = now.format("%H.%M").to_string();
 
-    let note_folder = "notes";
-    if let Ok(false) = fs::exists(note_folder) {
-        fs::create_dir(note_folder).unwrap();
+    let folder_path = String::from("notes");
+
+    if let Ok(false) = fs::exists(&folder_path) {
+        fs::create_dir(&folder_path).unwrap();
     }
 
-    let filename = format!("{note_folder}/{}.txt", date.to_string());
-
-    if let Err(e) = take_notes(editor, filename, timestamp) {
+    if let Err(e) = create_note(editor, folder_path, date, timestamp) {
         eprintln!("Application error: {e}");
         process::exit(1);
     }
 }
 
-fn take_notes(editor: String, filename: String, timestamp: String) -> Result<(), Box<dyn Error>> {
-    let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&filename)?;
+fn create_note(
+    editor: String,
+    folder_path: String,
+    date: String,
+    timestamp: String,
+) -> Result<(), Box<dyn Error>> {
+    let filename = format!("{folder_path}/{date}.txt");
 
-    file.write_all(format!("{timestamp}\n").as_bytes())?;
+    if let Ok(false) = fs::exists(&filename) {
+        fs::File::create_new(&filename)?;
+        let mut file = OpenOptions::new().append(true).open(&filename)?;
+        file.write_all(format!("{date}\n").as_bytes())?;
+    }
 
-    _ = Command::new(editor).arg(&filename).status()?;
+    let mut file = OpenOptions::new().append(true).open(&filename)?;
+
+    file.write_all(format!("\n{timestamp}\n").as_bytes())?;
+
+    Command::new(editor).arg(&filename).status()?;
 
     Ok(())
 }
