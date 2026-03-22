@@ -6,7 +6,7 @@ pub mod timestamp;
 use std::{
     error::Error,
     fs::{self, OpenOptions},
-    io::Write,
+    io::{self, Write},
     process::Command,
 };
 
@@ -15,6 +15,11 @@ use crate::{config::Config, timestamp::Timestamp};
 // FIX: Improve code duplication around file path handling
 
 pub fn add_note(config: Config, content: String) -> Result<(), Box<dyn Error>> {
+    let mut content = content.clone();
+    if content.trim().is_empty() {
+        io::stdin().read_line(&mut content)?;
+    }
+
     let timestamp = Timestamp::new();
     let folder_path = config.folder_path;
     let date = timestamp.date;
@@ -29,6 +34,10 @@ pub fn add_note(config: Config, content: String) -> Result<(), Box<dyn Error>> {
     let mut file = OpenOptions::new().append(true).open(&filename)?;
     let time = timestamp.time;
 
+    // TODO: handle case where current time is the same as the previous entry. Time shouldn't be
+    // inserted again in that case
+    // ALTERNATIVE: actually use the timestamp as separator for notes instead of every note just
+    // being a single line
     file.write_all(format!("\n# {time}\n{content}\n").as_bytes())?;
 
     Ok(())

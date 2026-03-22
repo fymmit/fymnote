@@ -9,6 +9,12 @@ pub struct Note {
     pub content: String,
 }
 
+impl Note {
+    fn mark_todo_as_done() {
+        unimplemented!()
+    }
+}
+
 impl Display for Note {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
