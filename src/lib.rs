@@ -1,5 +1,5 @@
 pub mod config;
-mod file_parser;
+pub mod file_parser;
 mod note;
 pub mod timestamp;
 
@@ -21,12 +21,12 @@ pub fn create_note(
     if let Ok(false) = fs::exists(&filename) {
         fs::File::create_new(&filename)?;
         let mut file = OpenOptions::new().append(true).open(&filename)?;
-        file.write_all(format!("{date}\n").as_bytes())?;
+        file.write_all(format!("## {date}\n").as_bytes())?;
     }
 
     let mut file = OpenOptions::new().append(true).open(&filename)?;
 
-    file.write_all(format!("\n{timestamp}\n").as_bytes())?;
+    file.write_all(format!("\n# {timestamp}\n").as_bytes())?;
 
     Command::new(editor).arg(&filename).status()?;
 
