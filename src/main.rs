@@ -1,5 +1,5 @@
-use fymnote::create_note;
 use fymnote::timestamp::Timestamp;
+use fymnote::{add_note, create_note, edit_notes};
 use fymnote::{config::Config, file_parser};
 use std::{
     env,
@@ -9,8 +9,11 @@ use std::{
 };
 
 enum RunMode {
+    Add(Vec<String>),
+    Edit,
     Notes,
     Todos,
+    Search,
 }
 
 fn main() {
@@ -24,8 +27,11 @@ fn main() {
     if args.len() > 1 {
         let arg = args[1].as_str();
         run_mode = match arg {
+            "add" => Some(RunMode::Add(args.into_iter().skip(2).collect())),
+            "edit" => Some(RunMode::Edit),
             "notes" => Some(RunMode::Notes),
             "todos" => Some(RunMode::Todos),
+            "search" => Some(RunMode::Search),
             _ => None,
         }
     }
@@ -43,11 +49,23 @@ fn run(config: Config, run_mode: Option<RunMode>) -> Result<(), Box<dyn Error>> 
     match run_mode {
         Some(mode) => {
             let notes = match mode {
-                RunMode::Notes => file_parser::find_notes(config.folder_path)?,
-                RunMode::Todos => file_parser::find_todos(config.folder_path)?,
+                RunMode::Add(rest) => {
+                    let content = rest.join(" ");
+                    add_note(config, content)?;
+                    None
+                }
+                RunMode::Edit => {
+                    edit_notes(config)?;
+                    None
+                }
+                RunMode::Notes => Some(file_parser::find_notes(config.folder_path)?),
+                RunMode::Todos => Some(file_parser::find_todos(config.folder_path)?),
+                RunMode::Search => unimplemented!(), // grep style thing
             };
-            for note in notes {
-                println!("{note}");
+            if let Some(notes) = notes {
+                for note in notes {
+                    println!("{note}");
+                }
             }
         }
         None => {

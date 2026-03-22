@@ -1,6 +1,6 @@
 pub mod config;
 pub mod file_parser;
-mod note;
+pub mod note;
 pub mod timestamp;
 
 use std::{
@@ -9,6 +9,43 @@ use std::{
     io::Write,
     process::Command,
 };
+
+use crate::{config::Config, timestamp::Timestamp};
+
+// FIX: Improve code duplication around file path handling
+
+pub fn add_note(config: Config, content: String) -> Result<(), Box<dyn Error>> {
+    let timestamp = Timestamp::new();
+    let folder_path = config.folder_path;
+    let date = timestamp.date;
+
+    let filename = format!("{folder_path}/{date}.txt");
+    if let Ok(false) = fs::exists(&filename) {
+        fs::File::create_new(&filename)?;
+        let mut file = OpenOptions::new().append(true).open(&filename)?;
+        file.write_all(format!("## {date}\n{content}").as_bytes())?;
+    }
+
+    let mut file = OpenOptions::new().append(true).open(&filename)?;
+    let time = timestamp.time;
+
+    file.write_all(format!("\n# {time}\n{content}\n").as_bytes())?;
+
+    Ok(())
+}
+
+pub fn edit_notes(config: Config) -> Result<(), Box<dyn Error>> {
+    let editor = config.editor;
+    let timestamp = Timestamp::new();
+    let folder_path = config.folder_path;
+    let date = timestamp.date;
+
+    let file_path = format!("{folder_path}/{date}.txt");
+
+    Command::new(editor).arg(file_path).status()?;
+
+    Ok(())
+}
 
 pub fn create_note(
     editor: String,
