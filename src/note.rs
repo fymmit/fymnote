@@ -5,13 +5,23 @@ use crate::timestamp::Timestamp;
 
 #[derive(Debug)]
 pub struct Note {
-    pub timestamp: Timestamp,
+    timestamp: Timestamp,
     pub content: String,
+    file_name: String,
+    line_number: u16,
 }
 
 impl Note {
-    fn mark_todo_as_done() {
-        unimplemented!()
+    pub fn new(timestamp: Timestamp, content: String, file_name: String, line_number: u16) -> Self {
+        Self {
+            timestamp,
+            content,
+            file_name,
+            line_number,
+        }
+    }
+    pub fn get_file_location(&self) -> (String, u16) {
+        (self.file_name.clone(), self.line_number)
     }
 }
 

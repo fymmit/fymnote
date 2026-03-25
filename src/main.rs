@@ -1,6 +1,7 @@
+use fymnote::config::Config;
+use fymnote::file_parser;
 use fymnote::timestamp::Timestamp;
 use fymnote::{add_note, create_note, edit_notes};
-use fymnote::{config::Config, file_parser};
 use std::{
     env,
     error::Error,
@@ -69,7 +70,7 @@ fn run(config: Config, run_mode: Option<RunMode>) -> Result<(), Box<dyn Error>> 
             }
         }
         None => {
-            let timestamp = Timestamp::new();
+            let timestamp = Timestamp::now();
             create_note(
                 config.editor,
                 config.folder_path,

@@ -20,7 +20,7 @@ pub fn add_note(config: Config, content: String) -> Result<(), Box<dyn Error>> {
         io::stdin().read_line(&mut content)?;
     }
 
-    let timestamp = Timestamp::new();
+    let timestamp = Timestamp::now();
     let folder_path = config.folder_path;
     let date = timestamp.date;
 
@@ -45,7 +45,7 @@ pub fn add_note(config: Config, content: String) -> Result<(), Box<dyn Error>> {
 
 pub fn edit_notes(config: Config) -> Result<(), Box<dyn Error>> {
     let editor = config.editor;
-    let timestamp = Timestamp::new();
+    let timestamp = Timestamp::now();
     let folder_path = config.folder_path;
     let date = timestamp.date;
 

@@ -19,30 +19,33 @@ pub fn find_notes(folder_path: String) -> Result<Vec<Note>, Box<dyn Error>> {
         let file = entry?;
         if let Some(file_path) = file.path().to_str() {
             let file_content = fs::read_to_string(file_path)?;
-            let notes_in_file = find_notes_from_file_content(file_content);
+            let notes_in_file = find_notes_from_file_content(file_content, file_path);
             result.extend(notes_in_file);
         }
     }
     Ok(result)
 }
 
-fn find_notes_from_file_content(file_content: String) -> Vec<Note> {
+fn find_notes_from_file_content(file_content: String, file_path: &str) -> Vec<Note> {
     let mut result: Vec<Note> = vec![];
     let mut date = String::from("N/A");
     let mut time = String::from("N/A");
-    for line in file_content.lines() {
+    for (i, line) in file_content.lines().enumerate() {
+        let line_number = u16::try_from(i).unwrap();
         if line.starts_with("## ") {
             date = line.split("## ").skip(1).next().unwrap().to_string();
         } else if line.starts_with("# ") {
             time = line.split("# ").skip(1).next().unwrap().to_string();
         } else if !line.is_empty() {
-            result.push(Note {
-                timestamp: Timestamp {
+            result.push(Note::new(
+                Timestamp {
                     date: date.clone(),
                     time: time.clone(),
                 },
-                content: line.to_string(),
-            });
+                line.to_string(),
+                String::from(file_path),
+                line_number,
+            ));
         }
     }
     result
@@ -54,6 +57,7 @@ mod tests {
 
     #[test]
     fn finds_notes_from_file_content() {
+        let file_path = "test_file.txt";
         let file_content = String::from(
             "\
 ## 2026-03-22
@@ -69,34 +73,41 @@ fizz buzz",
         );
 
         let expected_notes: Vec<Note> = vec![
-            Note {
-                timestamp: Timestamp {
+            Note::new(
+                Timestamp {
                     date: String::from("2026-03-22"),
                     time: String::from("08.14"),
                 },
-                content: String::from("test content"),
-            },
-            Note {
-                timestamp: Timestamp {
+                String::from("test content"),
+                String::from(file_path),
+                3,
+            ),
+            Note::new(
+                Timestamp {
                     date: String::from("2026-03-22"),
                     time: String::from("08.26"),
                 },
-                content: String::from("foo bar"),
-            },
-            Note {
-                timestamp: Timestamp {
+                String::from("foo bar"),
+                String::from(file_path),
+                6,
+            ),
+            Note::new(
+                Timestamp {
                     date: String::from("2026-03-22"),
                     time: String::from("08.43"),
                 },
-                content: String::from("fizz buzz"),
-            },
+                String::from("fizz buzz"),
+                String::from(file_path),
+                9,
+            ),
         ];
 
-        let result_notes = find_notes_from_file_content(file_content);
+        let result_notes = find_notes_from_file_content(file_content, file_path);
 
-        for (i, item) in expected_notes.iter().enumerate() {
+        for (i, _) in expected_notes.iter().enumerate() {
             let expected = &expected_notes[i];
             let result = &result_notes[i];
+            assert_eq!(expected.get_file_location(), result.get_file_location());
             assert_eq!(format!("{expected}"), format!("{result}"));
         }
     }
