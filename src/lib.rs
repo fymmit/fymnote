@@ -14,8 +14,7 @@ use crate::{config::Config, timestamp::Timestamp};
 
 // FIX: Improve code duplication around file path handling
 
-pub fn add_note(config: Config, content: String) -> Result<(), Box<dyn Error>> {
-    let mut content = content.clone();
+pub fn add_note(config: Config, mut content: String) -> Result<(), Box<dyn Error>> {
     if content.trim().is_empty() {
         io::stdin().read_line(&mut content)?;
     }
@@ -28,7 +27,7 @@ pub fn add_note(config: Config, content: String) -> Result<(), Box<dyn Error>> {
     if let Ok(false) = fs::exists(&filename) {
         fs::File::create_new(&filename)?;
         let mut file = OpenOptions::new().append(true).open(&filename)?;
-        file.write_all(format!("## {date}\n{content}").as_bytes())?;
+        file.write_all(format!("## {date}\n").as_bytes())?;
     }
 
     let mut file = OpenOptions::new().append(true).open(&filename)?;

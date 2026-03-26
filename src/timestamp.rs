@@ -1,6 +1,6 @@
 use chrono::Local;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Timestamp {
     pub date: String,
     pub time: String,

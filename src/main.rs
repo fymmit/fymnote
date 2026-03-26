@@ -45,7 +45,7 @@ fn main() {
 
 fn run(config: Config, run_mode: Option<RunMode>) -> Result<(), Box<dyn Error>> {
     if let Ok(false) = fs::exists(&config.folder_path) {
-        fs::create_dir(&config.folder_path).unwrap();
+        fs::create_dir(&config.folder_path)?;
     }
     match run_mode {
         Some(mode) => {

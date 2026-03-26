@@ -1,4 +1,4 @@
-use std::env;
+use std::env::{self, VarError};
 
 pub struct Config {
     pub editor: String,
@@ -6,10 +6,8 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new() -> Result<Config, &'static str> {
-        let editor = env::var("EDITOR").unwrap_or_else(|err| {
-            return err.to_string();
-        });
+    pub fn new() -> Result<Config, VarError> {
+        let editor = env::var("EDITOR")?;
         let folder_path = String::from("notes");
         Ok(Config {
             editor,

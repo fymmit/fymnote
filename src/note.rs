@@ -3,16 +3,21 @@ use std::fmt::Display;
 
 use crate::timestamp::Timestamp;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Note {
     timestamp: Timestamp,
     pub content: String,
     file_name: String,
-    line_number: u16,
+    line_number: usize,
 }
 
 impl Note {
-    pub fn new(timestamp: Timestamp, content: String, file_name: String, line_number: u16) -> Self {
+    pub fn new(
+        timestamp: Timestamp,
+        content: String,
+        file_name: String,
+        line_number: usize,
+    ) -> Self {
         Self {
             timestamp,
             content,
@@ -20,8 +25,8 @@ impl Note {
             line_number,
         }
     }
-    pub fn get_file_location(&self) -> (String, u16) {
-        (self.file_name.clone(), self.line_number)
+    pub fn file_location(&self) -> (&str, usize) {
+        (&self.file_name, self.line_number)
     }
 }
 

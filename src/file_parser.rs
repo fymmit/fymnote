@@ -30,18 +30,20 @@ fn find_notes_from_file_content(file_content: String, file_path: &str) -> Vec<No
     let mut result: Vec<Note> = vec![];
     let mut date = String::from("N/A");
     let mut time = String::from("N/A");
-    for (i, line) in file_content.lines().enumerate() {
-        let line_number = u16::try_from(i).unwrap();
-        if line.starts_with("## ") {
-            date = line.split("## ").skip(1).next().unwrap().to_string();
-        } else if line.starts_with("# ") {
-            time = line.split("# ").skip(1).next().unwrap().to_string();
+    const DATE_PREFIX: &str = "## ";
+    const TIME_PREFIX: &str = "# ";
+    for (line_number, line) in file_content.lines().enumerate() {
+        if line.starts_with(DATE_PREFIX) {
+            if let Some(d) = line.strip_prefix(DATE_PREFIX) {
+                date = d.to_string();
+            }
+        } else if line.starts_with(TIME_PREFIX) {
+            if let Some(t) = line.strip_prefix(TIME_PREFIX) {
+                time = t.to_string();
+            }
         } else if !line.is_empty() {
             result.push(Note::new(
-                Timestamp {
-                    date: date.clone(),
-                    time: time.clone(),
-                },
+                Timestamp::new(date.clone(), time.clone()),
                 line.to_string(),
                 String::from(file_path),
                 line_number,
@@ -107,8 +109,7 @@ fizz buzz",
         for (i, _) in expected_notes.iter().enumerate() {
             let expected = &expected_notes[i];
             let result = &result_notes[i];
-            assert_eq!(expected.get_file_location(), result.get_file_location());
-            assert_eq!(format!("{expected}"), format!("{result}"));
+            assert_eq!(expected, result);
         }
     }
 }
