@@ -1,7 +1,9 @@
 use fymnote::config::Config;
 use fymnote::file_parser;
+use fymnote::note::Note;
 use fymnote::timestamp::Timestamp;
 use fymnote::{add_note, create_note, edit_notes};
+use std::io::{self, Read};
 use std::{
     env,
     error::Error,
@@ -64,9 +66,10 @@ fn run(config: Config, run_mode: Option<RunMode>) -> Result<(), Box<dyn Error>> 
                 RunMode::Search => unimplemented!(), // grep style thing
             };
             if let Some(notes) = notes {
-                for note in notes {
-                    println!("{note}");
-                }
+                browse_notes(notes);
+                // for note in notes {
+                //     println!("{note}");
+                // }
             }
         }
         None => {
@@ -77,6 +80,24 @@ fn run(config: Config, run_mode: Option<RunMode>) -> Result<(), Box<dyn Error>> 
                 timestamp.date,
                 timestamp.time,
             )?;
+        }
+    }
+
+    Ok(())
+}
+
+fn browse_notes(notes: Vec<Note>) -> Result<(), Box<dyn Error>> {
+    // TODO: use crossterm
+    let mut selection = notes.len();
+
+    loop {
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+        match input.trim() {
+            "j" => println!("Down"),
+            "k" => println!("Up"),
+            "<Esc>" => break,
+            _ => continue,
         }
     }
 
