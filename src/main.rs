@@ -1,7 +1,14 @@
+use crossterm::event::Event;
+use crossterm::event::KeyCode;
+use crossterm::event::read;
+use crossterm::style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor};
+use crossterm::{execute, terminal};
 use fymnote::config::Config;
 use fymnote::file_parser;
+use fymnote::note::Note;
 use fymnote::timestamp::Timestamp;
 use fymnote::{add_note, create_note, edit_notes};
+use std::io::{self, Read, stdout};
 use std::{
     env,
     error::Error,
@@ -64,9 +71,10 @@ fn run(config: Config, run_mode: Option<RunMode>) -> Result<(), Box<dyn Error>> 
                 RunMode::Search => unimplemented!(), // grep style thing
             };
             if let Some(notes) = notes {
-                for note in notes {
-                    println!("{note}");
-                }
+                browse_notes(notes);
+                // for note in notes {
+                //     println!("{note}");
+                // }
             }
         }
         None => {
@@ -80,5 +88,29 @@ fn run(config: Config, run_mode: Option<RunMode>) -> Result<(), Box<dyn Error>> 
         }
     }
 
+    Ok(())
+}
+
+fn browse_notes(notes: Vec<Note>) -> Result<(), Box<dyn Error>> {
+    terminal::enable_raw_mode()?;
+    // let mut selection = notes.len();
+
+    loop {
+        // for (i, note) in notes.iter().enumerate() {
+        //     execute!(stdout(), Print(&format!("{}\n", note)), ResetColor)?;
+        // }
+        match read()? {
+            Event::Key(event) => match event.code {
+                KeyCode::Char('j') => println!("Down"),
+                KeyCode::Char('k') => println!("Up"),
+                KeyCode::Char('q') => break,
+                _ => println!("{:?}", event),
+            },
+            _ => break,
+        }
+        // println!("{:?}", read()?);
+    }
+
+    terminal::disable_raw_mode()?;
     Ok(())
 }
