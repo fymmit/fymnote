@@ -1,6 +1,7 @@
 use crossterm::event::Event;
 use crossterm::event::KeyCode;
 use crossterm::event::read;
+use crossterm::queue;
 use crossterm::style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor};
 use crossterm::{execute, terminal};
 use fymnote::config::Config;
@@ -8,6 +9,7 @@ use fymnote::file_parser;
 use fymnote::note::Note;
 use fymnote::timestamp::Timestamp;
 use fymnote::{add_note, create_note, edit_notes};
+use std::io::Write;
 use std::io::{self, Read, stdout};
 use std::{
     env,
@@ -92,24 +94,41 @@ fn run(config: Config, run_mode: Option<RunMode>) -> Result<(), Box<dyn Error>> 
 }
 
 fn browse_notes(notes: Vec<Note>) -> Result<(), Box<dyn Error>> {
+    println!("{}", notes.len());
     terminal::enable_raw_mode()?;
-    // let mut selection = notes.len();
+    let mut selection = notes.len() - 1;
 
+    execute!(stdout(), terminal::EnterAlternateScreen)?;
     loop {
-        // for (i, note) in notes.iter().enumerate() {
-        //     execute!(stdout(), Print(&format!("{}\n", note)), ResetColor)?;
-        // }
+        queue!(stdout(), terminal::Clear(terminal::ClearType::All))?;
+        for (i, note) in notes.iter().enumerate() {
+            if i == selection {
+                queue!(stdout(), SetForegroundColor(Color::Yellow))?;
+            } else {
+                queue!(stdout(), ResetColor)?;
+            }
+            queue!(stdout(), Print(&format!("{}\r\n", note)))?;
+        }
+        stdout().flush()?;
         match read()? {
             Event::Key(event) => match event.code {
-                KeyCode::Char('j') => println!("Down"),
-                KeyCode::Char('k') => println!("Up"),
+                KeyCode::Char('k') => {
+                    if selection > 0 {
+                        selection -= 1
+                    }
+                }
+                KeyCode::Char('j') => {
+                    if selection < notes.len() - 1 {
+                        selection += 1
+                    }
+                }
                 KeyCode::Char('q') => break,
-                _ => println!("{:?}", event),
+                _ => continue,
             },
             _ => break,
         }
-        // println!("{:?}", read()?);
     }
+    execute!(stdout(), terminal::LeaveAlternateScreen)?;
 
     terminal::disable_raw_mode()?;
     Ok(())
