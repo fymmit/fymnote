@@ -94,14 +94,19 @@ fn run(config: Config, run_mode: Option<RunMode>) -> Result<(), Box<dyn Error>> 
 }
 
 fn browse_notes(notes: Vec<Note>) -> Result<(), Box<dyn Error>> {
-    println!("{}", notes.len());
     terminal::enable_raw_mode()?;
     let mut selection = notes.len() - 1;
+
+    let (_cols, rows) = terminal::size()?;
+    let rows = usize::from(rows);
 
     execute!(stdout(), terminal::EnterAlternateScreen)?;
     loop {
         queue!(stdout(), terminal::Clear(terminal::ClearType::All))?;
         for (i, note) in notes.iter().enumerate() {
+            if i < selection.saturating_sub(rows) || i > selection {
+                continue;
+            }
             if i == selection {
                 queue!(stdout(), SetForegroundColor(Color::Yellow))?;
             } else {
