@@ -1,6 +1,7 @@
 pub mod config;
 pub mod file_parser;
 pub mod note;
+pub mod note_browser;
 pub mod timestamp;
 
 use std::{
